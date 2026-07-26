@@ -19,7 +19,11 @@ const initialFormData: CustomerFormData = {
   state: "",
 };
 
-export function CustomerForm() {
+type CustomerFormProps = {
+  onCustomerCreated: () => void;
+};
+
+export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
   const [formData, setFormData] =
     useState<CustomerFormData>(initialFormData);
 
@@ -115,6 +119,7 @@ export function CustomerForm() {
 
       setSuccessMessage("Cliente cadastrado com sucesso.");
       setFormData(initialFormData);
+      onCustomerCreated();
     } catch (error) {
       const message =
         error instanceof Error

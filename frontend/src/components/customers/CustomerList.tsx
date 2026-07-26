@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { getCustomers } from "@/services/customerService";
 import type { Customer } from "@/types/customer";
 
-export function CustomerList() {
+type CustomerListProps = {
+  refreshKey: number;
+};
+
+export function CustomerList({ refreshKey }: CustomerListProps) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -12,6 +16,7 @@ export function CustomerList() {
   useEffect(() => {
     async function loadCustomers() {
       try {
+        setIsLoading(true);
         setErrorMessage("");
 
         const customerList = await getCustomers();
@@ -30,7 +35,7 @@ export function CustomerList() {
     }
 
     loadCustomers();
-  }, []);
+  }, [refreshKey]);
 
   if (isLoading) {
     return (

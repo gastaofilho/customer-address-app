@@ -1,5 +1,4 @@
-import { CustomerForm } from "@/components/customers/CustomerForm";
-import { CustomerList } from "@/components/customers/CustomerList";
+import { CustomerManager } from "@/components/customers/CustomerManager";
 
 export default function Home() {
   return (
@@ -16,10 +15,7 @@ export default function Home() {
           </p>
         </header>
 
-        <div className="space-y-8">
-          <CustomerForm />
-          <CustomerList />
-        </div>
+        <CustomerManager />
       </div>
     </main>
   );
