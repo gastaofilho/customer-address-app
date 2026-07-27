@@ -32,19 +32,32 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    if (!errorMessage && !successMessage) {
+    if (!successMessage) {
       return;
     }
 
     const timeoutId = window.setTimeout(() => {
-      setErrorMessage("");
       setSuccessMessage("");
     }, 4000);
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [errorMessage, successMessage]);
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (!errorMessage) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setErrorMessage("");
+    }, 7000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [errorMessage]);
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
@@ -117,6 +130,55 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (!formData.name.trim()) {
+      setErrorMessage("Informe o nome do cliente.");
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setErrorMessage("Informe o e-mail do cliente.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(formData.email)) {
+      setErrorMessage("Informe um e-mail válido.");
+      return;
+    }
+
+    const normalizedCep = formData.cep.replace(/\D/g, "");
+
+    if (normalizedCep.length !== 8) {
+      setErrorMessage("Informe um CEP com 8 números.");
+      return;
+    }
+
+    if (!formData.street.trim()) {
+      setErrorMessage("Informe o logradouro.");
+      return;
+    }
+
+    if (!formData.number.trim()) {
+      setErrorMessage("Informe o número do endereço.");
+      return;
+    }
+
+    if (!formData.neighborhood.trim()) {
+      setErrorMessage("Informe o bairro.");
+      return;
+    }
+
+    if (!formData.city.trim()) {
+      setErrorMessage("Informe a cidade.");
+      return;
+    }
+
+    if (formData.state.trim().length !== 2) {
+      setErrorMessage("Informe uma UF válida com 2 letras.");
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMessage("");
     setSuccessMessage("");
@@ -147,27 +209,33 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
         Informe os dados pessoais e o endereço do cliente.
       </p>
 
-      <div
-        aria-live="polite"
-        className={errorMessage || successMessage ? "mt-4" : ""}
-      >
-        {errorMessage && (
-          <p
-            role="alert"
-            className="rounded-lg bg-red-50 p-3 text-sm text-red-700"
-          >
-            {errorMessage}
-          </p>
-        )}
+      {errorMessage && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-800 shadow-lg"
+        >
+          <strong className="block font-semibold">
+            Não foi possível concluir o cadastro
+          </strong>
 
-        {successMessage && (
-          <p className="rounded-lg bg-green-50 p-3 text-sm text-green-700">
-            {successMessage}
-          </p>
-        )}
-      </div>
+          <span className="mt-1 block text-sm">{errorMessage}</span>
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
+      {successMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-green-800 shadow-lg"
+        >
+          <strong className="block font-semibold">Cadastro realizado</strong>
+
+          <span className="mt-1 block text-sm">{successMessage}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} noValidate className="mt-6 grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2">
           <label
             htmlFor="name"
