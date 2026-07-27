@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 
 import { createCustomer } from "@/services/customerService";
@@ -24,17 +24,29 @@ type CustomerFormProps = {
 };
 
 export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
-  const [formData, setFormData] =
-    useState<CustomerFormData>(initialFormData);
+  const [formData, setFormData] = useState<CustomerFormData>(initialFormData);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSearchingCep, setIsSearchingCep] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  function handleChange(
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
+  useEffect(() => {
+    if (!errorMessage && !successMessage) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setErrorMessage("");
+      setSuccessMessage("");
+    }, 4000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [errorMessage, successMessage]);
+
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
 
     let formattedValue = value;
@@ -42,10 +54,7 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
     if (name === "cep") {
       const numbersOnly = value.replace(/\D/g, "").slice(0, 8);
 
-      formattedValue = numbersOnly.replace(
-        /^(\d{5})(\d{1,3})$/,
-        "$1-$2",
-      );
+      formattedValue = numbersOnly.replace(/^(\d{5})(\d{1,3})$/, "$1-$2");
     }
 
     if (name === "state") {
@@ -105,9 +114,7 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
     }
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setIsSubmitting(true);
@@ -134,18 +141,33 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-semibold text-gray-900">
-        Cadastro de cliente
-      </h2>
+      <h2 className="text-2xl font-semibold text-gray-900">Novo cliente</h2>
 
       <p className="mt-1 text-sm text-gray-600">
         Informe os dados pessoais e o endereço do cliente.
       </p>
 
-      <form
-        onSubmit={handleSubmit}
-        className="mt-6 grid gap-4 md:grid-cols-2"
+      <div
+        aria-live="polite"
+        className={errorMessage || successMessage ? "mt-4" : ""}
       >
+        {errorMessage && (
+          <p
+            role="alert"
+            className="rounded-lg bg-red-50 p-3 text-sm text-red-700"
+          >
+            {errorMessage}
+          </p>
+        )}
+
+        {successMessage && (
+          <p className="rounded-lg bg-green-50 p-3 text-sm text-green-700">
+            {successMessage}
+          </p>
+        )}
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2">
           <label
             htmlFor="name"
@@ -206,9 +228,7 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
           />
 
           {isSearchingCep && (
-            <p className="mt-1 text-sm text-gray-500">
-              Consultando CEP...
-            </p>
+            <p className="mt-1 text-sm text-gray-500">Consultando CEP...</p>
           )}
         </div>
 
@@ -332,23 +352,9 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
             disabled={isSubmitting || isSearchingCep}
             className="w-full rounded-lg bg-gray-900 px-4 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting
-              ? "Cadastrando..."
-              : "Cadastrar cliente"}
+            {isSubmitting ? "Cadastrando..." : "Cadastrar cliente"}
           </button>
         </div>
-
-        {errorMessage && (
-          <p className="md:col-span-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-            {errorMessage}
-          </p>
-        )}
-
-        {successMessage && (
-          <p className="md:col-span-2 rounded-lg bg-green-50 p-3 text-sm text-green-700">
-            {successMessage}
-          </p>
-        )}
       </form>
     </section>
   );

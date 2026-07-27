@@ -24,7 +24,7 @@ class StoreCustomerRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:150'],
-            'email' => ['required', 'email', 'max:150'],
+            'email' => ['required', 'email:rfc,dns', 'max:150', 'unique:customers,email'],
             'cep' => ['required', 'string', 'regex:/^\d{5}-?\d{3}$/'],
             'street' => ['required', 'string', 'max:200'],
             'number' => ['required', 'string', 'max:20'],
@@ -32,6 +32,15 @@ class StoreCustomerRequest extends FormRequest
             'neighborhood' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
             'state' => ['required', 'string', 'size:2'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'O e-mail é obrigatório.',
+            'email.email' => 'Informe um e-mail válido.',
+            'email.unique' => 'Este e-mail já está cadastrado.',
         ];
     }
 }
