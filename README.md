@@ -1,168 +1,100 @@
 Customer Address App
 
-Aplicação full stack para cadastro de clientes com preenchimento automático de endereço a partir do CEP.
+Aplicação full stack para cadastro de clientes com preenchimento automático de endereço por CEP.
 
-O projeto foi desenvolvido com:
-
-Backend: PHP 8.3, Laravel e Eloquent ORM
-
-Frontend: Next.js 16, React 19, TypeScript e Tailwind CSS
-
-Banco de dados: PostgreSQL 18
-
-Infraestrutura local: Docker e Docker Compose
-
-Consulta de CEP: ViaCEP
+Stack: Laravel 13 · PHP 8.3 · Next.js 16 · React 19 · TypeScript · PostgreSQL 18 · Docker
 
 Funcionalidades
 
 Consulta de endereço por CEP
 
-Preenchimento automático de:
+Preenchimento automático de logradouro, bairro, cidade e UF
 
-logradouro
+Cadastro e persistência de clientes
 
-bairro
+Listagem dos registros cadastrados
 
-cidade
+Atualização automática da listagem após novo cadastro
 
-UF
+Validações no frontend e backend
 
-Cadastro de clientes
+Tratamento de CEP inválido, inexistente e indisponibilidade do serviço externo
 
-Persistência dos dados no PostgreSQL
+Mensagens visuais de sucesso e erro
 
-Listagem dos clientes cadastrados
-
-Atualização automática da listagem após um novo cadastro
-
-Validação dos dados no backend
-
-Tratamento de:
-
-CEP com formato inválido
-
-CEP não encontrado
-
-indisponibilidade do serviço externo
-
-erros de validação no cadastro
-
-Arquitetura
-
-O projeto está organizado em duas aplicações independentes:
+Estrutura
 
 customer-address-app/
 ├── backend/              # API REST Laravel
 ├── frontend/             # Interface Next.js
-├── docker-compose.yml    # Orquestração dos serviços
+├── docker-compose.yml    # Backend, frontend e PostgreSQL
 └── README.md
 
-Fluxo da consulta de CEP
-
-Next.js
-   ↓
-GET /api/ceps/{cep}
-   ↓
-Laravel
-   ↓
-ViaCEP
-   ↓
-Resposta padronizada
-   ↓
-Preenchimento do formulário
-
-A consulta ao serviço externo é feita pelo backend. Dessa forma, o frontend não fica acoplado diretamente ao provedor de CEP e a integração pode ser alterada sem modificar os componentes da interface.
-
-Fluxo do cadastro
-
-Next.js
-   ↓
-POST /api/customers
-   ↓
-Validação com Form Request
-   ↓
-Model Customer / Eloquent ORM
-   ↓
-PostgreSQL
+Executar com Docker
 
 Pré-requisitos
-
-Para executar com Docker:
 
 Docker Desktop
 
 Docker Compose
 
-Para executar sem Docker:
-
-PHP 8.3 ou superior
-
-Composer 2
-
-Node.js 24
-
-npm
-
-PostgreSQL
-
-Execução com Docker
-
-O Docker Compose inicia:
-
-PostgreSQL na porta 5433
-
-Laravel na porta 8000
-
-Next.js na porta 3000
-
-Na raiz do projeto, execute:
+Na raiz do projeto:
 
 docker compose up --build
 
-Depois acesse:
+Acesse:
 
 Frontend: http://localhost:3000
 
-API Laravel: http://localhost:8000
+Backend: http://localhost:8000
 
-Listagem da API: http://localhost:8000/api/customers
+API de clientes: http://localhost:8000/api/customers
 
-Na primeira execução, o processo pode demorar alguns minutos, pois as imagens e dependências serão baixadas.
+As migrations são executadas automaticamente ao iniciar o backend.
 
-As migrations são executadas automaticamente durante a inicialização do backend.
+Comandos úteis
 
-Executar em segundo plano
+docker compose up --build -d   # Executar em segundo plano
+docker compose logs -f         # Exibir logs
+docker compose ps              # Ver status dos serviços
+docker compose down            # Parar os serviços
+docker compose down -v         # Parar e apagar os volumes
 
-docker compose up --build -d
+docker compose down -v remove os dados do PostgreSQL criado pelo Docker.
 
-Visualizar os logs
+Serviços e portas
 
-docker compose logs -f
+Serviço
 
-Parar os containers
+Tecnologia
 
-docker compose down
+Porta
 
-Parar e remover também os volumes
+Frontend
 
-docker compose down -v
+Next.js 16 / Node.js 24
 
-O comando com -v apaga o banco PostgreSQL criado pelo Docker.
+3000
+
+Backend
+
+Laravel 13 / PHP 8.3
+
+8000
+
+Banco
+
+PostgreSQL 18
+
+5433
+
+Dentro da rede Docker, o Laravel acessa o banco pelo host database e porta 5432.
 
 Variáveis de ambiente
 
 Backend
 
-O ambiente Docker utiliza o arquivo:
-
-backend/.env.docker
-
-Principais configurações:
-
-APP_NAME="Customer Address App"
 APP_ENV=local
-APP_KEY=
 APP_DEBUG=true
 APP_URL=http://localhost:8000
 
@@ -173,37 +105,24 @@ DB_DATABASE=customer_address_app
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
 
-O valor de APP_KEY é gerado automaticamente na inicialização do container.
-
 Frontend
-
-A variável usada para acessar a API é:
 
 NEXT_PUBLIC_API_URL=http://localhost:8000/api
 
-Para execução local sem Docker, crie:
+Arquivos locais como backend/.env e frontend/.env.local não são versionados.
 
-frontend/.env.local
+Executar sem Docker
 
-com o mesmo conteúdo.
-
-Execução sem Docker
-
-1. Configurar o backend
-
-Entre na pasta:
+Backend
 
 cd backend
-
-Instale as dependências:
-
 composer install
-
-Crie o arquivo local de ambiente:
-
 cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan serve
 
-No Windows PowerShell:
+No PowerShell, use:
 
 Copy-Item .env.example .env
 
@@ -216,49 +135,17 @@ DB_DATABASE=customer_address_app
 DB_USERNAME=postgres
 DB_PASSWORD=sua_senha
 
-Gere a chave:
-
-php artisan key:generate
-
-Execute as migrations:
-
-php artisan migrate
-
-Inicie a API:
-
-php artisan serve
-
-A API estará disponível em:
-
-http://127.0.0.1:8000
-
-2. Configurar o frontend
-
-Em outro terminal:
+Frontend
 
 cd frontend
-
-Instale as dependências:
-
 npm install
+npm run dev
 
-Crie o arquivo:
-
-frontend/.env.local
-
-Conteúdo:
+Crie frontend/.env.local:
 
 NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
 
-Inicie o frontend:
-
-npm run dev
-
-A aplicação estará disponível em:
-
-http://localhost:3000
-
-Endpoints da API
+Endpoints
 
 Consultar CEP
 
@@ -268,7 +155,7 @@ Exemplo:
 
 GET /api/ceps/80010000
 
-Resposta de sucesso:
+Resposta:
 
 {
   "data": {
@@ -280,21 +167,29 @@ Resposta de sucesso:
   }
 }
 
-Possíveis respostas:
+Status
 
-200: CEP encontrado
+Situação
 
-404: CEP não encontrado
+200
 
-422: CEP com formato inválido
+CEP encontrado
 
-503: serviço externo indisponível
+404
+
+CEP não encontrado
+
+422
+
+Formato inválido
+
+503
+
+Serviço externo indisponível
 
 Cadastrar cliente
 
 POST /api/customers
-
-Corpo:
 
 {
   "name": "Maria da Silva",
@@ -308,56 +203,15 @@ Corpo:
   "state": "PR"
 }
 
-Resposta de sucesso:
-
-{
-  "message": "Cliente cadastrado com sucesso.",
-  "data": {
-    "id": 1,
-    "name": "Maria da Silva",
-    "email": "maria@email.com",
-    "cep": "80010-000",
-    "street": "Rua José Loureiro",
-    "number": "100",
-    "complement": "Apartamento 12",
-    "neighborhood": "Centro",
-    "city": "Curitiba",
-    "state": "PR"
-  }
-}
-
-Código de resposta:
-
-201 Created
+Resposta de sucesso: 201 Created.
 
 Listar clientes
 
 GET /api/customers
 
-Resposta:
-
-{
-  "data": [
-    {
-      "id": 1,
-      "name": "Maria da Silva",
-      "email": "maria@email.com",
-      "cep": "80010-000",
-      "street": "Rua José Loureiro",
-      "number": "100",
-      "complement": "Apartamento 12",
-      "neighborhood": "Centro",
-      "city": "Curitiba",
-      "state": "PR",
-      "created_at": "2026-07-26T00:00:00.000000Z",
-      "updated_at": "2026-07-26T00:00:00.000000Z"
-    }
-  ]
-}
-
 Os registros são retornados do mais recente para o mais antigo.
 
-Validações do cadastro
+Validações
 
 Campo
 
@@ -365,11 +219,11 @@ Regra
 
 Nome
 
-Obrigatório, texto, até 150 caracteres
+Obrigatório, até 150 caracteres
 
 E-mail
 
-Obrigatório, formato válido, até 150 caracteres
+Obrigatório e válido, até 150 caracteres
 
 CEP
 
@@ -381,7 +235,7 @@ Obrigatório, até 200 caracteres
 
 Número
 
-Obrigatório, texto, até 20 caracteres
+Obrigatório, até 20 caracteres
 
 Complemento
 
@@ -397,41 +251,39 @@ Obrigatória, até 100 caracteres
 
 UF
 
-Obrigatória, exatamente dois caracteres
+Obrigatória, duas letras
 
-O número do endereço é armazenado como texto porque pode conter valores como 123A, 12-B ou S/N.
+O número do endereço é texto para aceitar valores como 123A, 12-B e S/N.
 
-Organização do backend
+Organização do código
+
+Backend
 
 backend/app/
-├── Http/
-│   ├── Controllers/Api/
-│   │   ├── CepController.php
-│   │   └── CustomerController.php
-│   └── Requests/
-│       └── StoreCustomerRequest.php
+├── Http/Controllers/Api/
+│   ├── CepController.php
+│   └── CustomerController.php
+├── Http/Requests/
+│   └── StoreCustomerRequest.php
 ├── Models/
 │   └── Customer.php
 └── Services/
     └── CepService.php
 
-Responsabilidades:
+CepController: recebe a consulta de CEP
 
-CustomerController: cadastro e listagem
+CepService: acessa a ViaCEP e padroniza a resposta
 
-CepController: entrada HTTP da consulta de CEP
+CustomerController: cadastra e lista clientes
 
-StoreCustomerRequest: validação do cadastro
+StoreCustomerRequest: valida os dados
 
-Customer: acesso à tabela customers
+Customer: representa a tabela customers
 
-CepService: comunicação com a API externa e padronização da resposta
-
-Organização do frontend
+Frontend
 
 frontend/src/
-├── app/
-│   └── page.tsx
+├── app/page.tsx
 ├── components/customers/
 │   ├── CustomerForm.tsx
 │   ├── CustomerList.tsx
@@ -444,105 +296,34 @@ frontend/src/
     ├── address.ts
     └── customer.ts
 
-Responsabilidades:
-
 CustomerForm: formulário, busca do CEP e cadastro
 
-CustomerList: consulta e exibição dos clientes
+CustomerList: exibição dos clientes
 
-CustomerManager: comunicação entre formulário e listagem
+CustomerManager: atualiza a listagem após o cadastro
 
-customerService: chamadas de cadastro e listagem
+services: comunicação com a API Laravel
 
-cepService: chamada ao endpoint de CEP
+types: contratos TypeScript
 
-types: contratos TypeScript usados pela aplicação
+Verificações
 
-Qualidade do código
-
-Para verificar o frontend:
-
-cd frontend
-npm run lint
-
-Para visualizar as rotas do backend:
-
-cd backend
-php artisan route:list --path=api
-
-Para verificar as migrations:
-
-php artisan migrate:status
+docker compose exec frontend npm run lint
+docker compose exec frontend npm run build
+docker compose exec backend php artisan migrate:status
+docker compose exec backend php artisan route:list --path=api
 
 Decisões técnicas
 
-Laravel no backend
+A consulta de CEP passa pelo Laravel para evitar acoplamento direto do frontend com o provedor externo.
 
-O Laravel foi escolhido por oferecer:
+O backend padroniza respostas, valida dados e trata erros.
 
-estrutura organizada para APIs REST
+O PostgreSQL é versionado por migrations.
 
-validação com Form Requests
+O Docker Compose permite iniciar todo o ambiente com um único comando.
 
-integração simples com PostgreSQL
-
-Eloquent ORM
-
-cliente HTTP para serviços externos
-
-migrations para versionamento do banco
-
-Next.js no frontend
-
-O Next.js foi escolhido por oferecer:
-
-React com estrutura organizada
-
-TypeScript
-
-App Router
-
-componentes reutilizáveis
-
-integração simples com APIs
-
-suporte a Tailwind CSS
-
-Consulta de CEP pelo backend
-
-O frontend não consulta diretamente a ViaCEP. Toda consulta passa pelo Laravel para:
-
-reduzir o acoplamento com o provedor externo
-
-centralizar tratamento de erros
-
-padronizar a resposta
-
-facilitar troca futura do serviço
-
-permitir cache e testes automatizados posteriormente
-
-PostgreSQL
-
-O PostgreSQL foi utilizado para persistência dos clientes e é iniciado automaticamente pelo Docker Compose.
-
-Melhorias futuras
-
-Testes automatizados do backend
-
-Testes de componentes no frontend
-
-Cache das consultas de CEP
-
-Paginação da listagem
-
-Mensagens de validação por campo
-
-CI/CD com GitHub Actions
-
-Deploy da aplicação
-
-Documentação com coleção Postman ou Insomnia
+O frontend utiliza TypeScript para melhorar segurança e legibilidade.
 
 Repositório
 
@@ -550,6 +331,4 @@ https://github.com/gastaofilho/customer-address-app
 
 Autor
 
-Gastão Barbosa
-
-Desenvolvedor Full Stack
+Gastão BarbosaDesenvolvedor Full Stack
