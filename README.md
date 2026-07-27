@@ -100,7 +100,7 @@ PHP 8.3 ou superior
 
 Composer 2
 
-Node.js 22
+Node.js 24
 
 npm
 
