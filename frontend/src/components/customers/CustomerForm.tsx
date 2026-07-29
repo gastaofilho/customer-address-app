@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 
-import { createCustomer } from "@/services/customerService";
+import { createCustomer, updateCustomer } from "@/services/customerService";
 import { getAddressByCep } from "@/services/cepService";
-import type { CustomerFormData } from "@/types/customer";
+import type { Customer, CustomerFormData } from "@/types/customer";
 
 const initialFormData: CustomerFormData = {
   name: "",
@@ -20,12 +20,19 @@ const initialFormData: CustomerFormData = {
 };
 
 type CustomerFormProps = {
-  onCustomerCreated: () => void;
+  editingCustomer: Customer | null;
+  onCustomerSaved: () => void;
+  onCancelEdit: () => void;
 };
 
-export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
-  const [formData, setFormData] = useState<CustomerFormData>(initialFormData);
-
+export function CustomerForm({
+  editingCustomer,
+  onCustomerSaved,
+  onCancelEdit,
+}: CustomerFormProps) {
+  const [formData, setFormData] = useState<CustomerFormData>(() =>
+    getInitialFormData(editingCustomer),
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSearchingCep, setIsSearchingCep] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -184,11 +191,18 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
     setSuccessMessage("");
 
     try {
-      await createCustomer(formData);
+      if (editingCustomer) {
+        await updateCustomer(editingCustomer.id, formData);
 
-      setSuccessMessage("Cliente cadastrado com sucesso.");
+        setSuccessMessage("Cliente atualizado com sucesso.");
+      } else {
+        await createCustomer(formData);
+
+        setSuccessMessage("Cliente cadastrado com sucesso.");
+      }
+
       setFormData(initialFormData);
-      onCustomerCreated();
+      onCustomerSaved();
     } catch (error) {
       const message =
         error instanceof Error
@@ -203,10 +217,14 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-semibold text-gray-900">Novo cliente</h2>
+      <h2 className="text-2xl font-semibold text-gray-900">
+        {editingCustomer ? "Editar cliente" : "Novo cliente"}
+      </h2>
 
       <p className="mt-1 text-sm text-gray-600">
-        Informe os dados pessoais e o endereço do cliente.
+        {editingCustomer
+          ? "Altere os dados do cliente selecionado."
+          : "Informe os dados pessoais e o endereço do cliente."}
       </p>
 
       {errorMessage && (
@@ -235,7 +253,11 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} noValidate className="mt-6 grid gap-4 md:grid-cols-2">
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        className="mt-6 grid gap-4 md:grid-cols-2"
+      >
         <div className="md:col-span-2">
           <label
             htmlFor="name"
@@ -414,16 +436,55 @@ export function CustomerForm({ onCustomerCreated }: CustomerFormProps) {
           />
         </div>
 
-        <div className="flex items-end">
+        <div className="flex flex-col items-end gap-3 sm:flex-row">
           <button
             type="submit"
             disabled={isSubmitting || isSearchingCep}
             className="w-full rounded-lg bg-gray-900 px-4 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? "Cadastrando..." : "Cadastrar cliente"}
+            {isSubmitting
+              ? editingCustomer
+                ? "Salvando alterações..."
+                : "Cadastrando..."
+              : editingCustomer
+                ? "Editar cadastro"
+                : "Cadastrar cliente"}
           </button>
+          {editingCustomer && (
+            <button
+              type="button"
+              onClick={() => {
+                setFormData(initialFormData);
+                setErrorMessage("");
+                setSuccessMessage("");
+                onCancelEdit();
+              }}
+              disabled={isSubmitting}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+            >
+              Cancelar edição
+            </button>
+          )}
         </div>
       </form>
     </section>
   );
+
+  function getInitialFormData(customer: Customer | null): CustomerFormData {
+    if (!customer) {
+      return initialFormData;
+    }
+
+    return {
+      name: customer.name,
+      email: customer.email,
+      cep: customer.cep,
+      street: customer.street,
+      number: customer.number,
+      complement: customer.complement ?? "",
+      neighborhood: customer.neighborhood,
+      city: customer.city,
+      state: customer.state,
+    };
+  }
 }

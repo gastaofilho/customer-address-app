@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
+use App\Http\Requests\UpdateCustomerRequest;
 
 class CustomerController extends Controller
 {
@@ -32,5 +33,26 @@ class CustomerController extends Controller
             ],
             201
         );
+    }
+
+    public function update(
+        UpdateCustomerRequest $request,
+        Customer $customer,
+    ): JsonResponse {
+        $customer->update($request->validated());
+
+        return response()->json([
+            'message' => 'Cliente atualizado com sucesso.',
+            'data' => $customer->fresh(),
+        ]);
+    }
+
+    public function destroy(Customer $customer): JsonResponse
+    {
+        $customer->delete();
+
+        return response()->json([
+            'message' => 'Cliente excluído com sucesso.',
+        ]);
     }
 }

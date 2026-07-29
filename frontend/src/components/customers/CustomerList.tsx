@@ -6,9 +6,15 @@ import type { Customer } from "@/types/customer";
 
 type CustomerListProps = {
   refreshKey: number;
+  onEditCustomer: (customer: Customer) => void;
+  onDeleteCustomer: (customer: Customer) => void;
 };
 
-export function CustomerList({ refreshKey }: CustomerListProps) {
+export function CustomerList({
+  refreshKey,
+  onEditCustomer,
+  onDeleteCustomer,
+}: CustomerListProps) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -79,6 +85,7 @@ export function CustomerList({ refreshKey }: CustomerListProps) {
                 <th className="px-4 py-3 font-medium">CEP</th>
                 <th className="px-4 py-3 font-medium">Endereço</th>
                 <th className="px-4 py-3 font-medium">Cidade/UF</th>
+                <th className="px-4 py-3 text-right font-medium">Ações</th>
               </tr>
             </thead>
 
@@ -92,26 +99,38 @@ export function CustomerList({ refreshKey }: CustomerListProps) {
                     {customer.name}
                   </td>
 
-                  <td className="px-4 py-4">
-                    {customer.email}
-                  </td>
+                  <td className="px-4 py-4">{customer.email}</td>
 
-                  <td className="px-4 py-4">
-                    {customer.cep}
-                  </td>
+                  <td className="px-4 py-4">{customer.cep}</td>
 
                   <td className="px-4 py-4">
                     {customer.street}, {customer.number}
-                    {customer.complement
-                      ? ` - ${customer.complement}`
-                      : ""}
-                    <div className="text-gray-500">
-                      {customer.neighborhood}
-                    </div>
+                    {customer.complement ? ` - ${customer.complement}` : ""}
+                    <div className="text-gray-500">{customer.neighborhood}</div>
                   </td>
 
                   <td className="px-4 py-4">
                     {customer.city}/{customer.state}
+                  </td>
+
+                  <td className="px-4 py-4">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onEditCustomer(customer)}
+                        className="rounded-lg border border-blue-300 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onDeleteCustomer(customer)}
+                        className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50"
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
