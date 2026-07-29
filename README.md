@@ -12,13 +12,19 @@ Preenchimento automático de logradouro, bairro, cidade e UF
 
 Cadastro e persistência de clientes
 
+Edição dos cadastros realizados
+
+Exclusão de clientes com confirmação
+
 Listagem dos registros cadastrados
 
-Atualização automática da listagem após novo cadastro
+Atualização automática da listagem após novo cadastro, edição ou exclusão
 
 Validações no frontend e backend
 
 Tratamento de CEP inválido, inexistente e indisponibilidade do serviço externo
+
+Tratamento de e-mail duplicado
 
 Mensagens visuais de sucesso e erro
 
@@ -211,6 +217,40 @@ GET /api/customers
 
 Os registros são retornados do mais recente para o mais antigo.
 
+Editar cliente
+
+PUT /api/customers/{id}
+
+Exemplo:
+
+PUT /api/customers/2
+
+O corpo da requisição segue o mesmo formato utilizado no cadastro.
+
+Resposta de sucesso:
+
+{
+  "message": "Cliente atualizado com sucesso.",
+  "data": {
+    "id": 2,
+    "name": "Maria da Silva"
+  }
+}
+
+Excluir cliente
+
+DELETE /api/customers/{id}
+
+Exemplo:
+
+DELETE /api/customers/2
+
+Resposta de sucesso:
+
+{
+  "message": "Cliente excluído com sucesso."
+}
+
 Validações
 
 Campo
@@ -223,7 +263,7 @@ Obrigatório, até 150 caracteres
 
 E-mail
 
-Obrigatório e válido, até 150 caracteres
+Obrigatório, válido, único e até 150 caracteres
 
 CEP
 
@@ -253,6 +293,8 @@ UF
 
 Obrigatória, duas letras
 
+Na edição, o e-mail atual do próprio cliente é desconsiderado na validação de unicidade.
+
 O número do endereço é texto para aceitar valores como 123A, 12-B e S/N.
 
 Organização do código
@@ -265,6 +307,7 @@ backend/app/
 │   └── CustomerController.php
 ├── Http/Requests/
 │   └── StoreCustomerRequest.php
+│   └── UpdateCustomerRequest.php
 ├── Models/
 │   └── Customer.php
 └── Services/
@@ -274,9 +317,11 @@ CepController: recebe a consulta de CEP
 
 CepService: acessa a ViaCEP e padroniza a resposta
 
-CustomerController: cadastra e lista clientes
+CustomerController: cadastra, lista, edita e exclui clientes
 
 StoreCustomerRequest: valida os dados
+
+UpdateCustomerRequest: valida os dados durante a edição
 
 Customer: representa a tabela customers
 
@@ -296,13 +341,13 @@ frontend/src/
     ├── address.ts
     └── customer.ts
 
-CustomerForm: formulário, busca do CEP e cadastro
+CustomerForm: formulário, busca do CEP, cadastro e edição
 
-CustomerList: exibição dos clientes
+CustomerList: exibição dos clientes e ações de editar e excluir
 
-CustomerManager: atualiza a listagem após o cadastro
+CustomerManager: coordena o formulário e atualiza a listagem após cadastro, edição ou exclusão
 
-services: comunicação com a API Laravel
+services: comunicação com a API Laravel para listar, cadastrar, editar e excluir
 
 types: contratos TypeScript
 
@@ -319,11 +364,15 @@ A consulta de CEP passa pelo Laravel para evitar acoplamento direto do frontend 
 
 O backend padroniza respostas, valida dados e trata erros.
 
+O Route Model Binding do Laravel localiza automaticamente o cliente nas rotas de edição e exclusão.
+
 O PostgreSQL é versionado por migrations.
 
 O Docker Compose permite iniciar todo o ambiente com um único comando.
 
 O frontend utiliza TypeScript para melhorar segurança e legibilidade.
+
+O mesmo formulário é reutilizado nos modos de cadastro e edição.
 
 Repositório
 
@@ -331,4 +380,6 @@ https://github.com/gastaofilho/customer-address-app
 
 Autor
 
-Gastão BarbosaDesenvolvedor Full Stack
+Gastão Barbosa
+
+Desenvolvedor Full Stack
